@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 const express = require('express');
-const myDB = require('./connection');
+const DB = require('./connection');
 const session = require('express-session');
 const passport = require('passport');
 const routes = require('./routes.js');
@@ -48,11 +48,11 @@ io.use(
   })
 );
 
-myDB(async client => {
-  const myDataBase = await client.db('database').collection('users');
+DB(async client => {
+  const database = await client.db('database').collection('users');
 
-  routes(app, myDataBase);
-  auth(app, myDataBase);
+  routes(app, database);
+  auth(app, database);
 
   let currentUsers = 0;
   io.on('connection', (socket) => {

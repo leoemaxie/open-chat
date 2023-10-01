@@ -1,26 +1,25 @@
-$(document).ready(function() {
-  /*global io*/
-  let socket = io();
+/*global io*/
+let socket = io();
+let numOfUsers = document.querySelector('#num-users');
+let messages = document.querySelector('#messages');
+let form = document.querySelector('#form');
 
-  socket.on('user', data => {
-    $('#num-users').text(data.currentUsers + ' users online');
-    let message =
-      data.username +
-      (data.connected ? ' has joined the chat.' : ' has left the chat.');
-    $('#messages').append($('<li>').html('<b>' + message + '</b>'));
-  });
+socket.on('user', data => {
+  let msg = data.username + (data.connected ? ' has joined the chat.' : ' has left the chat.');
 
-  socket.on('chat message', data => {
-    console.log('socket.on 1')
-    $('#messages').append($('<li>').text(`${data.username}: ${data.message}`));
-  })
+  numOfUsers.innertext = `${data.currentUsers} users online`;
+  messages.append(`<li>'<b>'${msg}</b></li>`);
+});
 
-  // Form submittion with new message in field with id 'm'
-  $('form').submit(function() {
-    let messageToSend = $('#m').val();
-    //send message to server here?
-    socket.emit('chat message', messageToSend);
-    $('#m').val('');
-    return false; // prevent form submit from refreshing page
-  });
+socket.on('chat message', data => {
+  console.log('socket.on 1')
+  messages.append(`<li> ${data.username}: ${data.message}</li>`);
+})
+
+form.addEventListener('submit', e => {
+  let messageToSend = document.querySelector('#message-to-send');
+
+  socket.emit('chat message', messageToSend.value);
+  messageToSend.value = '';
+  e.preventDefault();
 });

@@ -7,20 +7,20 @@ const { ObjectID } = require('mongodb');
 const LocalStrategy = require('passport-local');
 const GitHubStrategy = require('passport-github').Strategy;
 
-module.exports = function(app, myDataBase) {
+module.exports = function(app, database) {
 
   passport.serializeUser((user, done) => {
     done(null, user._id);
   });
 
   passport.deserializeUser((id, done) => {
-    myDataBase.findOne({ _id: new ObjectID(id) }, (err, doc) => {
+    database.findOne({ _id: new ObjectID(id) }, (err, doc) => {
       done(null, doc);
     });
   });
 
   passport.use(new LocalStrategy((username, password, done) => {
-    myDataBase.findOne({ username: username }, (err, user) => {
+    database.findOne({ username: username }, (err, user) => {
       console.log(`User ${username} attempted to log in.`);
       if (err) return done(err);
       if (!user) return done(null, false);
@@ -38,7 +38,7 @@ module.exports = function(app, myDataBase) {
   },
     function(accessToken, refreshToken, profile, cb) {
       console.log(profile);
-      myDataBase.findOneAndUpdate(
+      database.findOneAndUpdate(
         { id: profile.id },
         {
           $setOnInsert: {

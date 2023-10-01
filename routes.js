@@ -2,17 +2,16 @@ const bcrypt = require('bcrypt');
 const passport = require('passport');
 
 function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
+  if (req.isAuthenticated())
     return next();
-  }
   res.redirect('/');
 };
 
-module.exports = function(app, myDataBase) {
+module.exports = function(app, database) {
 
   app.route('/').get((req, res) => {
     res.render('index', {
-      title: 'Connected to Database',
+      title: 'Connected to Chat server',
       message: 'Please login',
       showLogin: true,
       showRegistration: true,
@@ -23,13 +22,13 @@ module.exports = function(app, myDataBase) {
   app.route('/register').post((req, res, next) => {
     const hash = bcrypt.hashSync(req.body.password, 12);
 
-    myDataBase.findOne({ username: req.body.username }, (err, user) => {
+    database.findOne({ username: req.body.username }, (err, user) => {
       if (err) {
         next(err);
       } else if (user) {
         res.redirect('/');
       } else {
-        myDataBase.insertOne({
+        database.insertOne({
           username: req.body.username,
           password: hash
         },
@@ -59,20 +58,19 @@ module.exports = function(app, myDataBase) {
     });
 
   app.route('/auth/github').get(passport.authenticate('github'));
-  app.route('/auth/github/callback').get(passport.authenticate('github', { failureRedirect: '/' }), (req, res) => {
-    req.session.user_id = req.user.id;
-    res.redirect("/chat");
+  app.route('/auth/github/callback').get(passport.authenticate('github', { failureRedirect: '/' }),
+    (req, res) => {
+      req.session.user_id = req.user.id;
+      res.redirect("/chat");
   });
-  
-  app.route('/profile').get(ensureAuthenticated,
-    (req, res) => {
-      res.render('profile', { username: req.user.username });
-    });
 
-  app.route('/chat').get(ensureAuthenticated,
-    (req, res) => {
-      res.render('chat', { user: req.user });
-    });
+  app.route('/profile').get(ensureAuthenticated, (req, res) => {
+    res.render('profile', { username: req.user.username });
+  });
+
+  app.route('/chat').get(ensureAuthenticated, (req, res) => {
+    res.render('chat', { user: req.user });
+  });
 
   app.route('/logout').get((req, res) => {
     req.logout();
