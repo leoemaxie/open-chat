@@ -79,6 +79,6 @@ module.exports = function(app, database) {
 
   app.use((req, res, next) => {
     res.render('notFound')
-       .status(404);
+    res.status(404);
   });
 }

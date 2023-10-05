@@ -1,3 +1,77 @@
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margin */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+}
+
+/* Set core root defaults */
+html:focus-within {
+  scroll-behavior: smooth;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+}
+
+/* A elements that don't have a class get default styles */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+/* Make images easier to work with */
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Remove all animations and transitions for people that prefer not to see them */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .border {
   border-style: inset;
   border-width: 1px;
@@ -27,25 +101,28 @@ a.text {
 
 form {
   padding: 3px;
-  width: 500px;
+  max-width: 500px;
 }
 
 form input {
   background-color: #eee;
   border: green solid 2px;
-  padding: 10px; 
-  width: 90%; 
-  margin-right: .5%;
+  padding: 10px;
+  width: 90%;
+  margin-right: 0.5%;
 }
 
-form button { 
+form button {
   width: 9%;
   background: rgb(130, 224, 255);
-  border: none; 
-  padding: 10px; 
+  border: none;
+  padding: 10px;
 }
 
-#messages { 
+form button:hover {
+  background-color: red;
+}
+#messages {
   list-style-type: none;
   text-align: left;
   margin: 0;
@@ -55,10 +132,10 @@ form button {
   overflow-x: hidden;
 }
 
-#messages li { 
+#messages li {
   padding: 5px 10px;
 }
 
-#messages li:nth-child(odd) { 
+#messages li:nth-child(odd) {
   background: #eee;
 }

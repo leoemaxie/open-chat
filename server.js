@@ -1,99 +1,115 @@
-'use strict';
-require('dotenv').config();
+"use strict";
+require("dotenv").config();
 
-const express = require('express');
-const DB = require('./connection');
-const session = require('express-session');
-const passport = require('passport');
-const routes = require('./routes.js');
-const auth = require('./auth.js');
+const express = require("express");
+const DB = require("./database/database");
+const session = require("express-session");
+const passport = require("passport");
+const routes = require("./routes/routes");
+const auth = require("./auth/auth");
 
 const app = express();
 
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const passportSocketIo = require('passport.socketio');
-const cookieParser = require('cookie-parser');
-const MongoStore = require('connect-mongo')(session);
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
+const passportSocketIo = require("passport.socketio");
+const cookieParser = require("cookie-parser");
+const MongoStore = require("connect-mongo");
 const URI = process.env.MONGO_URI;
-const store = new MongoStore({ url: URI });
+const store = MongoStore.create({
+  mongoUrl: URI,
+  autoremove: "native",
+});
 
-app.set('view engine', 'pug');
-app.set('views', './views/pug');
+app.set("view engine", "pug");
+app.set("views", "./views/pug");
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: true,
-  saveUninitialized: true,
-  cookie: { secure: false },
-  key: 'express.sid',
-  store: store
-}));
+app.use("/public", express.static(process.cwd() + "/public"));
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+app.use(express.json());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: true,
+    saveUninitialized: true,
+    cookie: {
+      secure: false,
+    },
+    key: "express.sid",
+    store: store,
+  })
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/public', express.static(process.cwd() + '/public'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 io.use(
   passportSocketIo.authorize({
     cookieParser: cookieParser,
-    key: 'express.sid',
+    key: "express.sid",
     secret: process.env.SESSION_SECRET,
     store: store,
     success: onAuthorizeSuccess,
-    fail: onAuthorizeFail
+    fail: onAuthorizeFail,
   })
 );
 
-DB(async client => {
-  const database = await client.db('database').collection('users');
+DB(async (client) => {
+  const database = await client.db("database").collection("users");
 
   routes(app, database);
   auth(app, database);
 
   let currentUsers = 0;
-  io.on('connection', (socket) => {
+  io.on("connection", (socket) => {
     ++currentUsers;
-    io.emit('user', {
+    io.emit("user", {
       username: socket.request.user.username,
       currentUsers,
-      connected: true
+      connected: true,
     });
-    
-    socket.on('chat message', (message) => {
-      io.emit('chat message', { username: socket.request.user.username, message });
+
+    socket.on("chat message", (message) => {
+      io.emit("chat message", {
+        username: socket.request.user.username,
+        message,
+      });
     });
-    
-    console.log('A user has connected');
-    
-    socket.on('disconnect', () => {
-      console.log('A user has disconnected');
+
+    console.log("A user has connected");
+
+    socket.on("disconnect", () => {
+      console.log("A user has disconnected");
       --currentUsers;
-      io.emit('user', {
+      io.emit("user", {
         username: socket.request.user.username,
         currentUsers,
-        connected: false
+        connected: false,
       });
     });
   });
-
-}).catch(e => {
-  app.route('/').get((req, res) => {
-    res.render('index', { title: e, message: 'Unable to connect to database' });
+}).catch((e) => {
+  app.route("/").get((req, res) => {
+    res.render("index", {
+      title: e,
+      message: "Unable to connect to database",
+    });
   });
 });
 
 function onAuthorizeSuccess(data, accept) {
-  console.log('successful connection to socket.io');
+  console.log("successful connection to socket.io");
   accept(null, true);
 }
 
 function onAuthorizeFail(data, message, error, accept) {
   if (error) throw new Error(message);
-  console.log('failed connection to socket.io:', message);
+  console.log("Failed connectionto socket.io:", message);
   accept(null, false);
 }
 

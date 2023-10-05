@@ -4,3 +4,4 @@ node_modules
 .upm*
 .config
 .vercel
+*.html
